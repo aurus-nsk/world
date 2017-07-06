@@ -13,7 +13,7 @@ create table city (
 	square numeric NOT NULL,
 	population int NOT NULL
 );
-create table city (id serial PRIMARY KEY, name varchar(255) NOT NULL, square numeric NOT NULL, population int NOT NULL );
+
 
 create table street (
 	id serial PRIMARY KEY,
@@ -38,12 +38,10 @@ create table phones (
 	organization_id int REFERENCES organization(id),
 	phone_number varchar(255)
 );
-create table phones (id serial PRIMARY KEY, organization_id int REFERENCES organization(id), phone_number varchar(255));
 
 
 
-create table organization (id serial PRIMARY KEY,name varchar(255) NOT NULL,city_id int REFERENCES City(id),street_id int REFERENCES Street(id),home_number varchar(255),scope varchar(255) NOT NULL,date_update timestamp NOT NULL);
-
+create table city (id serial PRIMARY KEY, name varchar(255) NOT NULL, square numeric NOT NULL, population int NOT NULL );
 
 INSERT INTO city(name, square, population) VALUES('Москва', 2561.5, 12380664);
 INSERT INTO city(name, square, population) VALUES ('Новосибирск',505.62, 1602915);
@@ -51,6 +49,9 @@ INSERT INTO city(name, square, population) VALUES ('Сочи', 176.77, 401291);
 
 create table street (id serial PRIMARY KEY, name varchar(255) NOT NULL, extent numeric NOT NULL);
 
-INSERT INTO street(name, extent) VALUES ('Титова', 4.55);
-INSERT INTO street(name, extent) VALUES ('Красный проспект', 6.7);
-INSERT INTO street(name, extent) VALUES ('Ленина', 2.4);
+INSERT INTO street(name, extent) VALUES ('Титова', 4550);
+INSERT INTO street(name, extent) VALUES ('Красный проспект', 6700);
+INSERT INTO street(name, extent) VALUES ('Ленина', 2400);
+
+create table organization (id serial PRIMARY KEY,name varchar(255) NOT NULL,city_id int REFERENCES City(id),street_id int REFERENCES Street(id),home_number varchar(255),scope varchar(255) NOT NULL,date_update timestamp NOT NULL);
+create table phones (id serial PRIMARY KEY, organization_id int REFERENCES organization(id), phone_number varchar(255));
