@@ -1,6 +1,7 @@
 package com.world.domain;
 
 public class City {
+
 		private int id;
 		private String name;
 		private double square;

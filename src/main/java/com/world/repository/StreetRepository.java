@@ -16,7 +16,7 @@ public class StreetRepository {
 
 	@Autowired
     JdbcTemplate jdbcTemplate;
-	private static final Logger log = LoggerFactory.getLogger(CityRepository.class);
+	private static final Logger log = LoggerFactory.getLogger(StreetRepository.class);
 
 	@Transactional(readOnly=true)
     public List<Street> findAll() {

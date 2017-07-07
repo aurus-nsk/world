@@ -53,5 +53,5 @@ INSERT INTO street(name, extent) VALUES ('Титова', 4550);
 INSERT INTO street(name, extent) VALUES ('Красный проспект', 6700);
 INSERT INTO street(name, extent) VALUES ('Ленина', 2400);
 
-create table organization (id serial PRIMARY KEY,name varchar(255) NOT NULL,city_id int REFERENCES City(id),street_id int REFERENCES Street(id),home_number varchar(255),scope varchar(255) NOT NULL,date_update timestamp NOT NULL);
-create table phones (id serial PRIMARY KEY, organization_id int REFERENCES organization(id), phone_number varchar(255));
+create table organization (id serial PRIMARY KEY, name varchar(255) NOT NULL, city_id int REFERENCES City(id), street_id int REFERENCES Street(id), home_number varchar(255),scope varchar(255) NOT NULL, website varchar(255), date_update timestamp NOT NULL);
+create table phones (id serial PRIMARY KEY, phone_number varchar(255), organization_id int NOT NULL);

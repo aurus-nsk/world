@@ -13,43 +13,46 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.world.domain.City;
-import com.world.repository.CityRepository;
+import com.world.domain.Organization;
+import com.world.repository.OrganizationRepository;
 
 @RestController
 @Transactional
-@RequestMapping(value="/cities")
-public class CityController {
+@RequestMapping(value="/organizations")
+public class OrganizationController {
 
 	@Autowired
-	private CityRepository cityRepository;
-
+	private OrganizationRepository organizationRepository;
+	
 	@RequestMapping(value="/", method = RequestMethod.GET)
-	public Collection<City> get() {
-		return cityRepository.findAll();
+	public Collection<Organization> get() {
+		return organizationRepository.findAll();
 	}
-
+	
 	@RequestMapping(value="/{id}", method = RequestMethod.GET)
-	public City read(@PathVariable String id) {
-		return cityRepository.findById(id);
+	public Organization read(@PathVariable String id) {
+		return organizationRepository.findById(id);
 	}
-
+	
 	@RequestMapping(value="/", method = RequestMethod.POST)
-	public ResponseEntity<?> create(@RequestBody City input) {
-		cityRepository.save(input);
+	public ResponseEntity<?> create(@RequestBody Organization input) {
+		organizationRepository.save(input);
 		return new ResponseEntity<>("success", HttpStatus.OK);
 	} 
-
+	
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<?> update(@PathVariable String id, @RequestBody City input) {
-		City result = cityRepository.findById(id);
+	public ResponseEntity<?> update(@PathVariable String id, @RequestBody Organization input) {
+		Organization result = organizationRepository.findById(id);
 
 		if (result == null) {
-			return new ResponseEntity<String>("City with id " + id + " not found.", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("Organization with id " + id + " not found.", HttpStatus.NOT_FOUND);
 		} else {
 			result.setName(input.getName());
-			result.setPopulation(input.getPopulation());
-			result.setSquare(input.getSquare());
-			cityRepository.save(result);
+			result.setScope(input.getScope());
+			result.setHomeNumber(input.getHomeNumber());
+			result.setCity(input.getCity());
+			result.setStreet(input.getStreet());
+			organizationRepository.save(result);
 		}
 
 		return new ResponseEntity<>("success", HttpStatus.OK); 
@@ -57,7 +60,7 @@ public class CityController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> delete(@PathVariable String id) {
-		cityRepository.deleteById(id);
+		organizationRepository.deleteById(id);
 		return new ResponseEntity<City>(HttpStatus.NO_CONTENT); 
 	}
 }
