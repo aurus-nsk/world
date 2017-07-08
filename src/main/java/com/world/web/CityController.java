@@ -1,6 +1,7 @@
 package com.world.web;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,12 @@ public class CityController {
 	@RequestMapping(value="/", method = RequestMethod.POST)
 	public ResponseEntity<?> create(@RequestBody City input) {
 		cityRepository.save(input);
+		return new ResponseEntity<>("success", HttpStatus.OK);
+	} 
+	
+	@RequestMapping(value="/", method = RequestMethod.POST)
+	public ResponseEntity<?> addAll(@RequestBody List<City> list) {
+		cityRepository.saveAll(list);
 		return new ResponseEntity<>("success", HttpStatus.OK);
 	} 
 

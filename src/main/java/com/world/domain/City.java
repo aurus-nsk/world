@@ -1,13 +1,15 @@
 package com.world.domain;
 
+import java.math.BigDecimal;
+
 public class City {
 
 		private int id;
 		private String name;
-		private double square;
+		private BigDecimal square;
 		private int population;
 		
-		public City(int id, String name, double square, int population) {
+		public City(int id, String name, BigDecimal square, int population) {
 			this.id = id;
 			this.name = name;
 			this.square = square;
@@ -30,11 +32,11 @@ public class City {
 			this.name = name;
 		}
 
-		public double getSquare() {
+		public BigDecimal getSquare() {
 			return square;
 		}
 
-		public void setSquare(double square) {
+		public void setSquare(BigDecimal square) {
 			this.square = square;
 		}
 
@@ -58,9 +60,7 @@ public class City {
 			result = prime * result + id;
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
 			result = prime * result + population;
-			long temp;
-			temp = Double.doubleToLongBits(square);
-			result = prime * result + (int) (temp ^ (temp >>> 32));
+			result = prime * result + ((square == null) ? 0 : square.hashCode());
 			return result;
 		}
 
@@ -82,9 +82,12 @@ public class City {
 				return false;
 			if (population != other.population)
 				return false;
-			if (Double.doubleToLongBits(square) != Double.doubleToLongBits(other.square))
+			if (square == null) {
+				if (other.square != null)
+					return false;
+			} else if (!square.equals(other.square))
 				return false;
 			return true;
 		}
-		
+
 }

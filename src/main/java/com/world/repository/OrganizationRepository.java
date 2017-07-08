@@ -1,8 +1,10 @@
 package com.world.repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
@@ -26,6 +29,9 @@ public class OrganizationRepository {
 
 	@Autowired
     JdbcTemplate jdbcTemplate;
+	@Autowired
+	private PhoneRepository phoneRepository;
+	
 	private static final Logger log = LoggerFactory.getLogger(OrganizationRepository.class);
 	
 	@Transactional(readOnly=true)
@@ -42,7 +48,7 @@ public class OrganizationRepository {
 	        public void processRow(ResultSet rs) throws SQLException {
 	        	
 	        	Organization org = new Organization(rs.getInt("org.id"), rs.getString("org.name"), 
-    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getDouble("city.square"), rs.getInt("city.population")),
+    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getBigDecimal("city.square"), rs.getInt("city.population")),
     					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
     					rs.getString("org.home_number"), rs.getString("org.scope"), rs.getString("org.website"), rs.getDate("org.date_update"));
 	        	
@@ -60,11 +66,38 @@ public class OrganizationRepository {
 	
 	@Transactional
     public void save(Organization input) {
-		//TODO: if NULL input NPE
         jdbcTemplate.update("INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update) VALUES (?,?,?,?,?,?,now())", 
         		new Object[] {input.getName(), input.getCity().getId(), input.getStreet().getId(), input.getHomeNumber(), input.getScope(), input.getWebsite(), input.getScope()});
         log.info("insert: " + input.toString());
+        
+        phoneRepository.saveAll(input.getPhone(), input.getId());
     }
+	
+	@Transactional
+	public void saveAll(List<Organization> list) {
+		String sql = "INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update) VALUES (?,?,?,?,?,?,now())";
+		jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				Organization item = list.get(i);
+				ps.setString(1, item.getName());
+				ps.setInt(2, item.getCity().getId());
+				ps.setInt(3, item.getStreet().getId());
+				ps.setString(4, item.getHomeNumber());
+				ps.setString(5, item.getScope());
+				ps.setString(6, item.getWebsite());
+			}
+
+			@Override
+			public int getBatchSize() {
+				return list.size();
+			}
+		});
+		log.info("insert: " + Arrays.toString(list.toArray()));
+		
+		list.forEach(item -> phoneRepository.saveAll(item.getPhone(), item.getId()));
+	}
 	
 	@Transactional(readOnly=true)
 	public Organization findById(String id) {
@@ -80,7 +113,7 @@ public class OrganizationRepository {
 	        public void processRow(ResultSet rs) throws SQLException {
 	        	
 	        	Organization org = new Organization(rs.getInt("org.id"), rs.getString("org.name"), 
-    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getDouble("city.square"), rs.getInt("city.population")),
+    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getBigDecimal("city.square"), rs.getInt("city.population")),
     					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
     					rs.getString("org.home_number"), rs.getString("org.scope"), rs.getString("org.website"), rs.getDate("org.date_update"));
 	        	
@@ -111,7 +144,7 @@ public class OrganizationRepository {
 	        public void processRow(ResultSet rs) throws SQLException {
 	        	
 	        	Organization org = new Organization(rs.getInt("org.id"), rs.getString("org.name"), 
-    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getDouble("city.square"), rs.getInt("city.population")),
+    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getBigDecimal("city.square"), rs.getInt("city.population")),
     					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
     					rs.getString("org.home_number"), rs.getString("org.scope"), rs.getString("org.website"), rs.getDate("org.date_update"));
 	        	
@@ -133,14 +166,3 @@ public class OrganizationRepository {
 		log.info("deleteById: " + id);
 	}
 }
-
-/*
-List<Organization> result = jdbcTemplate.query(
-        "SELECT id, name, city.id, city.name, city.square, city.population, street.id, street.name, street.extent, homeNumber, scope, date_update FROM organization, city, street "
-        + "WHERE city_id = city.id AND street_id = street.id",
-        (rs, rowNum) -> new Organization(rs.getInt("id"), rs.getString("name"), 
-        					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getDouble("city.square"), rs.getInt("city.population")),
-        					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
-        					rs.getString("homeNumber"), rs.getString("scope"), rs.getDate("date_update"))
-);
-*/
