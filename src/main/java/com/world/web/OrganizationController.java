@@ -34,6 +34,11 @@ public class OrganizationController {
 		return organizationRepository.findById(id);
 	}
 	
+	@RequestMapping(value="/{name}", method = RequestMethod.GET)
+	public Collection<Organization> find(@PathVariable String name) {
+		return organizationRepository.findByName(name);
+	}
+	
 	@RequestMapping(value="/", method = RequestMethod.POST)
 	public ResponseEntity<?> create(@RequestBody Organization input) {
 		organizationRepository.save(input);
@@ -52,6 +57,8 @@ public class OrganizationController {
 			result.setHomeNumber(input.getHomeNumber());
 			result.setCity(input.getCity());
 			result.setStreet(input.getStreet());
+			result.setPhone(input.getPhone());
+			result.setWebsite(input.getWebsite());
 			organizationRepository.save(result);
 		}
 
