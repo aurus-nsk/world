@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +132,35 @@ public class OrganizationRepository {
 	}
 	
 	@Transactional(readOnly=true)
+	public Collection<Organization> findFromDateUpdate(Date from) {
+		
+		final Map<Integer, Organization> map = new HashMap<>();
+		
+		String sql = "SELECT org.id, org.name, org.home_number, org.scope, org.website, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent "
+				+ "FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id WHERE org.date_update > ?";
+		
+		jdbcTemplate.query(sql, new Object[]{from}, new RowCallbackHandler() {
+
+	        @Override
+	        public void processRow(ResultSet rs) throws SQLException {
+	        	
+	        	Organization org = new Organization(rs.getInt("org.id"), rs.getString("org.name"), 
+    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getBigDecimal("city.square"), rs.getInt("city.population")),
+    					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
+    					rs.getString("org.home_number"), rs.getString("org.scope"), rs.getString("org.website"), rs.getDate("org.date_update"));
+	        	
+	            Phone phone = new Phone(rs.getInt("phone.id"), rs.getString("phone.number"));
+
+	            map.putIfAbsent(org.getId(), org);
+	            map.get(org.getId()).addPhone(phone);
+	        }
+	    });
+		
+		map.forEach((k,v)->log.info("select: " + v));
+		return map.values(); 
+	}
+	
+	@Transactional(readOnly=true)
 	public Collection<Organization> findByName(String name) {
 		
 		final Map<Integer, Organization> map = new HashMap<>();
@@ -156,7 +186,6 @@ public class OrganizationRepository {
 	    });
 		
 		map.forEach((k,v)->log.info("select: " + v));
-
 		return map.values();
 	}
 	

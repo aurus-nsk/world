@@ -1,9 +1,11 @@
 package com.world.web;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.world.domain.City;
@@ -36,8 +39,13 @@ public class OrganizationController {
 	}
 	
 	@RequestMapping(value="/{name}", method = RequestMethod.GET)
-	public Collection<Organization> find(@PathVariable String name) {
+	public Collection<Organization> findByName(@PathVariable String name) {
 		return organizationRepository.findByName(name);
+	}
+	
+	@RequestMapping(value="/from", method = RequestMethod.GET)
+	public Collection<Organization> findFromDateUpdate(@RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd'T'hh:mm:ss.SSSZ") Date fromDate) {
+		return organizationRepository.findFromDateUpdate(fromDate);
 	}
 	
 	@RequestMapping(value="/", method = RequestMethod.POST)
