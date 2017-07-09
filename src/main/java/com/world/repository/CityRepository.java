@@ -34,6 +34,8 @@ public class CityRepository {
 	
 	@Transactional
     public void save(City input) {
+		//TODO: holderkey 
+		//https://stackoverflow.com/questions/10597477/getting-auto-generated-key-from-row-insertion-in-spring-3-postgresql-8-4-9
         jdbcTemplate.update("INSERT INTO city(name, square, population) VALUES (?,?,?)", new Object[] {input.getName(), input.getSquare(), input.getPopulation()});
         log.info("insert: " + input.toString());
     }

@@ -2,12 +2,18 @@ package com.world.domain;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class City {
 
 		private int id;
 		private String name;
 		private BigDecimal square;
 		private int population;
+		
+		public City() {
+		}
 		
 		public City(int id, String name, BigDecimal square, int population) {
 			this.id = id;
@@ -89,5 +95,4 @@ public class City {
 				return false;
 			return true;
 		}
-
 }

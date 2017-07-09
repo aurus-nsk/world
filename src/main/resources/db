@@ -1,4 +1,4 @@
-CREATE DATABASE world
+﻿CREATE DATABASE world
   WITH OWNER = postgres
        ENCODING = 'UTF8'
        TABLESPACE = pg_default
@@ -7,28 +7,30 @@ CREATE DATABASE world
        CONNECTION LIMIT = -1;
 \c world;
 
-create table city (id serial PRIMARY KEY, name varchar(255) NOT NULL, square numeric NOT NULL, population int NOT NULL );
+create table city (id serial PRIMARY KEY, name varchar(255) UNIQUE, square numeric NOT NULL, population int NOT NULL );
 
 INSERT INTO city(name, square, population) VALUES('Москва', 2561.5, 12380664);
 INSERT INTO city(name, square, population) VALUES ('Новосибирск',505.62, 1602915);
 INSERT INTO city(name, square, population) VALUES ('Сочи', 176.77, 401291);
 
-create table street (id serial PRIMARY KEY, name varchar(255) NOT NULL, extent int NOT NULL);
+create table street (id serial PRIMARY KEY, name varchar(255) UNIQUE, extent int NOT NULL);
 
 INSERT INTO street(name, extent) VALUES ('Титова', 4550);
 INSERT INTO street(name, extent) VALUES ('Красный проспект', 6700);
 INSERT INTO street(name, extent) VALUES ('Ленина', 2400);
 
-create table organization (id serial PRIMARY KEY, name varchar(255) NOT NULL, city_id int REFERENCES City(id), street_id int REFERENCES Street(id), home_number varchar(255),scope varchar(255) NOT NULL, website varchar(255), date_update timestamp NOT NULL);
+create table organization (id serial PRIMARY KEY, name varchar(255) UNIQUE, city_id int REFERENCES City(id), street_id int REFERENCES Street(id), home_number varchar(255),scope varchar(255) NOT NULL, website varchar(255), date_update timestamp NOT NULL, key_words varchar(100000));
 
-INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update) 
-VALUES ('Альфа-Банк', 2, 3, 10, 'Банк', 'alfabank.ru', now());
-INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update) 
-VALUES ('Сбербанк', 2, 2, 55, 'Банк', 'sberbank.ru', now());
-INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update) 
-VALUES ('Ингосстрах', 2, 1, 1, 'Страхование', 'ingos.ru', now());
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Альфа-Банк', 2, 3, 10, 'Банк', 'alfabank.ru', now(), 'банкомат на Ленина, альфабанк, банк в центре, банкомат');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Цирюльник', 2, 2, 75, 'Парикмахерская', 'cirulnik.ru', now(),'постричься в Новосибирске, барбершоп, причёски');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Ингосстрах', 2, 1, 1, 'Страхование', 'ingos.ru', now(), 'купить полис ОСАГО, страховка, застраховаться от клеща');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Мексика для всех', 2, 3, 12, 'Ресторан', 'super-cafe.ru', now(), 'Поесть на Ленина, кафе на ленина, ресторан в центре, мексиканская кухня');
 
-create table phones (id serial PRIMARY KEY, number varchar(255), organization_id int REFERENCES organization(id));
+create table phones (id serial PRIMARY KEY, number varchar(255) UNIQUE, organization_id int REFERENCES organization(id));
 
 INSERT INTO phones(number, organization_id) VALUES ('+79231112233', 1);
 INSERT INTO phones(number, organization_id) VALUES ('+79235554455', 1);
@@ -40,3 +42,35 @@ SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, 
 
 find org by name
 SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id WHERE org.name = 'Сбербанк'
+
+
+http://qualcode.ru/article/postgres_fts_dict_cfg/
+
+CREATE TEXT SEARCH DICTIONARY ispell_ru (template  =   ispell, dictfile  =   ru, afffile   =   ru, stopwords =   russian);
+CREATE TEXT SEARCH DICTIONARY ispell_en (template  = ispell, dictfile  = en, afffile   = en, stopwords = english);
+CREATE TEXT SEARCH CONFIGURATION ru ( COPY = russian );
+ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR word, hword, hword_part WITH ispell_ru, russian_stem;
+ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR asciiword, asciihword, hword_asciipart WITH ispell_en, english_stem;
+SET default_text_search_config = 'ru';
+default_text_search_config = 'ru'
+SELECT * FROM ts_debug('ru', 'Search. Поиск. 152');
+
+http://qualcode.ru/article/postgresql-full-text-search/
+
+ALTER TABLE organization ADD COLUMN orgts tsvector;
+UPDATE organization SET orgts=
+setweight( coalesce( to_tsvector('ru', name),''),'A') || ' ' ||
+setweight( coalesce( to_tsvector('ru', key_words),''),'B');
+
+ALTER TABLE city ADD COLUMN cityts tsvector;
+UPDATE city SET cityts=
+setweight( coalesce( to_tsvector('ru', name),''),'C');
+
+ALTER TABLE street ADD COLUMN streetts tsvector;
+UPDATE street SET streetts=
+setweight( coalesce( to_tsvector('ru', name),''),'D');
+
+//without phones
+SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id;
+//adopt it
+SELECT * FROM articles WHERE fts @@ to_tsquery('Full&text&search:ab');

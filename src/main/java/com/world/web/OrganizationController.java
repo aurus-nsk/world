@@ -54,7 +54,7 @@ public class OrganizationController {
 		return new ResponseEntity<>("success", HttpStatus.OK);
 	} 
 	
-	@RequestMapping(value="/", method = RequestMethod.POST)
+	@RequestMapping(value="/batch", method = RequestMethod.POST)
 	public ResponseEntity<?> addAll(@RequestBody List<Organization> list) {
 		organizationRepository.saveAll(list);
 		return new ResponseEntity<>("success", HttpStatus.OK);
