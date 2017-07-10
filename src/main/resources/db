@@ -7,6 +7,14 @@
        CONNECTION LIMIT = -1;
 \c world;
 
+=======================================================
+=======================================================
+
+drop table phones;
+drop table organization;
+drop table city;
+drop table street;
+
 create table city (id serial PRIMARY KEY, name varchar(255) UNIQUE, square numeric NOT NULL, population int NOT NULL );
 
 INSERT INTO city(name, square, population) VALUES('Москва', 2561.5, 12380664);
@@ -24,11 +32,17 @@ create table organization (id serial PRIMARY KEY, name varchar(255) UNIQUE, city
 INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
 VALUES ('Альфа-Банк', 2, 3, 10, 'Банк', 'alfabank.ru', now(), 'банкомат на Ленина, альфабанк, банк в центре, банкомат');
 INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
-VALUES ('Цирюльник', 2, 2, 75, 'Парикмахерская', 'cirulnik.ru', now(),'постричься в Новосибирске, барбершоп, причёски');
+VALUES ('Цирюльник', 2, 2, 75, 'Парикмахерская', 'cirulnik.ru', now(),'Постричься в Новосибирске, барбершоп, причёски');
 INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
 VALUES ('Ингосстрах', 2, 1, 1, 'Страхование', 'ingos.ru', now(), 'купить полис ОСАГО, страховка, застраховаться от клеща');
 INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
 VALUES ('Мексика для всех', 2, 3, 12, 'Ресторан', 'super-cafe.ru', now(), 'Поесть на Ленина, кафе на ленина, ресторан в центре, мексиканская кухня');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Московская еда', 1, 3, 100, 'Ресторан', 'super-cafe.msk.ru', now(), 'Поесть на Ленина, кафе на ленина, ресторан в центре, московская кухня');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Сочинская еда', 3, 3, 9, 'Ресторан', 'sochi.ru', now(), 'Поесть в Сочи');
+INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) 
+VALUES ('Сочинская еда 2', 3, 3, 9, 'Ресторан', 'sochi.ru', now(), 'Поесть в Сочи 2');
 
 create table phones (id serial PRIMARY KEY, number varchar(255) UNIQUE, organization_id int REFERENCES organization(id));
 
@@ -37,13 +51,50 @@ INSERT INTO phones(number, organization_id) VALUES ('+79235554455', 1);
 INSERT INTO phones(number, organization_id) VALUES ('3807711', 2);
 INSERT INTO phones(number, organization_id) VALUES ('2501010', 3);
 
-find all org with phones
-SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id;
+**** Search
+ALTER TABLE organization ADD COLUMN orgfts tsvector;
+UPDATE organization SET orgfts=
+setweight( coalesce( to_tsvector('ru', name),''),'A') || ' ' ||
+setweight( coalesce( to_tsvector('ru', scope),''),'B') || ' ' ||
+setweight( coalesce( to_tsvector('ru', key_words),''),'B');
 
-find org by name
-SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id WHERE org.name = 'Сбербанк'
+ALTER TABLE city ADD COLUMN cityfts tsvector;
+UPDATE city SET cityfts=
+setweight( coalesce( to_tsvector('ru', name),''),'C');
+
+ALTER TABLE street ADD COLUMN streetfts tsvector;
+UPDATE street SET streetfts=
+setweight( coalesce( to_tsvector('ru', name),''),'D');
+
+create index orgfts_index on organization using gin (orgfts);
+create index cityfts_index on city using gin (cityfts);
+create index streetfts_index on street using gin (streetfts);
+
+SELECT org.name, ts_rank_cd(( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')), query) AS rank
+FROM organization org left join city on org.city_id = city.id left join street on org.street_id = street.id, to_tsquery('Поесть & в & Новосибирск') query 
+WHERE ( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')) @@ query  
+ORDER BY rank DESC;
 
 
+**** Competitor
+search by scope 
+
+select city.name, org.scope, count(org.scope) as quantity, city.population
+from organization org left join city on org.city_id = city.id left join street on org.street_id = street.id
+WHERE org.scope = 'Ресторан'
+GROUP BY org.scope, city.name, city.population;
+
+
+**** Step street
+
+SELECT street.name, street.extent, org.name
+FROM street left join organization org ON org.street_id = street.id left join city on org.city_id = city.id
+WHERE street.extent >= 1 AND street.extent <= 10000 AND city.name = 'Новосибирск' 
+AND orgfts @@ to_tsquery('String:b');
+
+
+=======================================================
+=======================================================
 http://qualcode.ru/article/postgres_fts_dict_cfg/
 
 CREATE TEXT SEARCH DICTIONARY ispell_ru (template  =   ispell, dictfile  =   ru, afffile   =   ru, stopwords =   russian);
@@ -53,24 +104,22 @@ ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR word, hword, hword_part WIT
 ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR asciiword, asciihword, hword_asciipart WITH ispell_en, english_stem;
 SET default_text_search_config = 'ru';
 default_text_search_config = 'ru'
+
+//try to check
 SELECT * FROM ts_debug('ru', 'Search. Поиск. 152');
 
-http://qualcode.ru/article/postgresql-full-text-search/
+//find all org with phones
+SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id;
 
-ALTER TABLE organization ADD COLUMN orgts tsvector;
-UPDATE organization SET orgts=
-setweight( coalesce( to_tsvector('ru', name),''),'A') || ' ' ||
-setweight( coalesce( to_tsvector('ru', key_words),''),'B');
+//find org by name
+SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id WHERE org.name = 'Сбербанк'
 
-ALTER TABLE city ADD COLUMN cityts tsvector;
-UPDATE city SET cityts=
-setweight( coalesce( to_tsvector('ru', name),''),'C');
-
-ALTER TABLE street ADD COLUMN streetts tsvector;
-UPDATE street SET streetts=
-setweight( coalesce( to_tsvector('ru', name),''),'D');
+//search
+SELECT org.name, ts_rank_cd(( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')), query) AS rank
+FROM organization org left join city on org.city_id = city.id left join street on org.street_id = street.id, to_tsquery('Поесть & в & Новосибирск') query 
+WHERE ( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')) @@ query  
+ORDER BY rank DESC;
 
 //without phones
 SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id;
-//adopt it
-SELECT * FROM articles WHERE fts @@ to_tsquery('Full&text&search:ab');
+https://stackoverflow.com/questions/15053400/full-text-search-with-related-tables-in-postgresql
