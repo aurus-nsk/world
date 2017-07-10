@@ -1,5 +1,6 @@
 package com.world.web;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -38,8 +39,8 @@ public class OrganizationController {
 		return organizationRepository.findById(id);
 	}
 	
-	@RequestMapping(value="/{name}", method = RequestMethod.GET)
-	public Collection<Organization> findByName(@PathVariable String name) {
+	@RequestMapping(value="/name", method = RequestMethod.GET)
+	public Collection<Organization> findByName(@RequestParam("name") String name) {
 		return organizationRepository.findByName(name);
 	}
 	
@@ -84,5 +85,13 @@ public class OrganizationController {
 	public ResponseEntity<?> delete(@PathVariable String id) {
 		organizationRepository.deleteById(id);
 		return new ResponseEntity<City>(HttpStatus.NO_CONTENT); 
+	}
+	
+	@RequestMapping(value="/search", method = RequestMethod.POST)
+	public Collection<Organization> search(@RequestBody String text) {
+		System.out.println(text);
+		String query = text.replace("\\W+", " | ");
+		System.out.println("search query: " + query);
+		return organizationRepository.search(query);
 	}
 }

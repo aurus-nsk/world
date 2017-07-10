@@ -194,4 +194,30 @@ public class OrganizationRepository {
 		jdbcTemplate.update("DELETE from organization WHERE id = ?", new Object[] {id});
 		log.info("deleteById: " + id);
 	}
+	
+	@Transactional
+	public Collection<Organization> search(String param) {
+		System.out.println("search repository");
+		String sql = "SELECT org.id, org.name, org.home_number, org.scope, org.website, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent, ts_rank_cd(( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')), query) AS rank FROM organization org left join phones phone on org.id = phone.organization_id left join city on org.city_id = city.id left join street on org.street_id = street.id, to_tsquery(?) query WHERE ( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')) @@ query ORDER BY rank DESC";
+		
+		Map<Integer, Organization> map = new HashMap<>();
+		jdbcTemplate.query(sql, new RowCallbackHandler() {
+	        @Override
+	        public void processRow(ResultSet rs) throws SQLException {
+	        	System.out.println("rs " + rs);
+	        	Organization org = new Organization(rs.getInt("org.id"), rs.getString("org.name"), 
+    					new City(rs.getInt("city.id"), rs.getString("city.name"), rs.getBigDecimal("city.square"), rs.getInt("city.population")),
+    					new Street(rs.getInt("street.id"), rs.getString("street.name"), rs.getInt("street.extent")),
+    					rs.getString("org.home_number"), rs.getString("org.scope"), rs.getString("org.website"), rs.getDate("org.date_update"));
+	        	
+	            Phone phone = new Phone(rs.getInt("phone.id"), rs.getString("phone.number"));
+
+	            map.putIfAbsent(org.getId(), org);
+	            map.get(org.getId()).addPhone(phone);
+	        }
+	    }, param);
+		
+		map.forEach((k,v)->log.info("select: " + v));
+		return map.values();
+	}
 }

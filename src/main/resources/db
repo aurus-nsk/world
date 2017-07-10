@@ -5,8 +5,19 @@
        LC_COLLATE = 'C'
        LC_CTYPE = 'C'
        CONNECTION LIMIT = -1;
+       
+       CREATE DATABASE world
+  		WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'ru_RU.utf8'
+       LC_CTYPE = 'ru_RU.utf8'
+       CONNECTION LIMIT = -1;
+       
 \c world;
 
+select name, setting from pg_settings where name like '%_encoding';
+
+1251 ????
 =======================================================
 =======================================================
 
@@ -103,7 +114,6 @@ CREATE TEXT SEARCH CONFIGURATION ru ( COPY = russian );
 ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR word, hword, hword_part WITH ispell_ru, russian_stem;
 ALTER TEXT SEARCH CONFIGURATION ru ALTER MAPPING FOR asciiword, asciihword, hword_asciipart WITH ispell_en, english_stem;
 SET default_text_search_config = 'ru';
-default_text_search_config = 'ru'
 
 //try to check
 SELECT * FROM ts_debug('ru', 'Search. Поиск. 152');
@@ -123,3 +133,6 @@ ORDER BY rank DESC;
 //without phones
 SELECT org.id, org.name, org.home_number, org.scope, org.date_update, phone.id, phone.number, city.id, city.name, city.square, city.population, street.id, street.name, street.extent FROM organization org left join phones phone on org.id = phone.organization_id inner join city ON org.city_id = city.id inner join street ON org.street_id = street.id;
 https://stackoverflow.com/questions/15053400/full-text-search-with-related-tables-in-postgresql
+
+//повторы из-за телефонов
+SELECT org.name, ts_rank_cd(( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')), query) AS rank FROM organization org left join phones phone on org.id = phone.organization_id left join city on org.city_id = city.id left join street on org.street_id = street.id, to_tsquery('Новосибирск') query WHERE ( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')) @@ query ORDER BY rank DESC;
