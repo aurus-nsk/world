@@ -26,6 +26,9 @@ public class Organization {
 		this.website = website;
 		this.dateUpdate = dateUpdate;
 	}
+	
+	public Organization() {
+	}
 
 	public int getId() {
 		return id;

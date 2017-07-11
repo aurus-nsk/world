@@ -7,7 +7,7 @@
        CONNECTION LIMIT = -1;
        
        CREATE DATABASE world
-  		WITH OWNER = postgres
+  	   WITH OWNER = postgres
        ENCODING = 'UTF8'
        LC_COLLATE = 'ru_RU.utf8'
        LC_CTYPE = 'ru_RU.utf8'
@@ -29,8 +29,8 @@ drop table street;
 create table city (id serial PRIMARY KEY, name varchar(255) UNIQUE, square numeric NOT NULL, population int NOT NULL );
 
 INSERT INTO city(name, square, population) VALUES('Москва', 2561.5, 12380664);
-INSERT INTO city(name, square, population) VALUES ('Новосибирск',505.62, 1602915);
-INSERT INTO city(name, square, population) VALUES ('Сочи', 176.77, 401291);
+INSERT INTO city(name, square, population) VALUES('Новосибирск',505.62, 1602915);
+INSERT INTO city(name, square, population) VALUES('Сочи', 176.77, 401291);
 
 create table street (id serial PRIMARY KEY, name varchar(255) UNIQUE, extent int NOT NULL);
 

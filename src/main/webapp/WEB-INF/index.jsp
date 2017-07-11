@@ -29,9 +29,20 @@
 	  	2. Анализ городов, компании конкуренты
 	  	3. Выбор пешеходной улицы
 	  	
-	  	
-	  	<div id="table">
-		</div>
+	  	<table id="table" class="table">
+		  <thead>
+		    <tr>
+		      <th>#</th>
+		      <th>название</th>
+		      <th>сфера деятельности</th>
+		      <th>город</th>
+		      <th>улица</th>
+		      <th>ключевые слова</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		  </tbody>
+		</table>
 	</div>
 	<jsp:include page="/WEB-INF/footer.jsp"/>
 	<SCRIPT type="text/javascript">
@@ -43,14 +54,25 @@
     		});
 
     		function submitViaAjax() {
-
     			$.ajax({
     				type : "POST",
     				contentType : "application/json;charset=UTF-8",
     				url : "/organizations/search",
+    				dataType: 'json',
     				data: $('#request_id').val(), 
     			    success: function(data) {
-    			    	$('#table').html(data);
+    			    	$('#table tbody > tr').remove();
+    			    	$.each(data, function(i, data){
+    			    	     $("#table tbody").append(
+    			                     "<tr>"
+    			                      +"<td>"+data.id+"</td>"
+    			                      +"<td>"+data.name+"</td>"
+    			                      +"<td>"+data.scope+"</td>"
+    			                      +"<td>"+data.city.name+"</td>"
+    			                      +"<td>"+data.street.name+"</td>"
+    			                      +"<td>"+data.keyWords+"</td>"
+    			                    +"</tr>" );
+    			    	})
     			    },
     			    error: function(xhr) {
                         console.log(xhr);

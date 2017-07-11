@@ -1,15 +1,21 @@
 package com.world.repository;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +39,25 @@ public class CityRepository {
     }
 	
 	@Transactional
-    public void save(City input) {
-		//TODO: holderkey 
-		//https://stackoverflow.com/questions/10597477/getting-auto-generated-key-from-row-insertion-in-spring-3-postgresql-8-4-9
-        jdbcTemplate.update("INSERT INTO city(name, square, population) VALUES (?,?,?)", new Object[] {input.getName(), input.getSquare(), input.getPopulation()});
-        log.info("insert: " + input.toString());
+    public int save(City input) {
+        String sql = "INSERT INTO city(name, square, population) VALUES (?,?,?)"; 
+		KeyHolder holder = new GeneratedKeyHolder();
+		
+		jdbcTemplate.update(new PreparedStatementCreator() {           
+            @Override
+            public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, input.getName());
+                ps.setBigDecimal(2, input.getSquare());
+                ps.setInt(3, input.getPopulation());
+                return ps;
+            }
+        }, holder);
+		
+        Map<String, Object> map = holder.getKeys(); 
+        int id = (int) map.get("id");
+        log.info("insert: " + id + " " + input.toString());
+        return id;
     }
 	
 	@Transactional
@@ -61,6 +81,12 @@ public class CityRepository {
 
 		log.info("insert: " + Arrays.toString(list.toArray()));
 	}
+	
+	@Transactional
+    public void updateFts() {
+		jdbcTemplate.update("UPDATE city SET cityfts=setweight( coalesce( to_tsvector('ru', name),''),'C');");
+        log.info("update city full text search index");
+    }
 	
 	@Transactional(readOnly=true)
 	public City findById(String id) {

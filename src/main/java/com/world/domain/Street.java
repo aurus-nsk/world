@@ -6,6 +6,9 @@ public class Street {
 	private String name;
 	private int extent;
 
+	public Street() {
+	}
+
 	public Street(int id, String name, int extent) {
 		this.id = id;
 		this.name = name;

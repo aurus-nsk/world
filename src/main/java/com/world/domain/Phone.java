@@ -4,6 +4,9 @@ public class Phone {
 	private int id;
 	private String number;
 	
+	public Phone() {
+	}
+
 	public Phone(int id, String number) {
 		this.id = id;
 		this.number = number;

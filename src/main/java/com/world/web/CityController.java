@@ -8,12 +8,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.world.domain.City;
 import com.world.repository.CityRepository;
@@ -37,18 +37,19 @@ public class CityController {
 	}
 
 	@RequestMapping(value="/", method = RequestMethod.POST)
-	public ResponseEntity<?> create(@RequestBody City input, BindingResult bindingResult) {
-		cityRepository.save(input);
+	public ResponseEntity<?> create(@RequestBody City input, UriComponentsBuilder ucBuilder) {
+		int id = cityRepository.save(input);
+		cityRepository.updateFts();
 		HttpHeaders headers = new HttpHeaders();
-		//TODO: id holder key
-        //headers.setLocation(ucBuilder.path("/cities/{id}").buildAndExpand(777).toUri());
-		return new ResponseEntity<>("headers", HttpStatus.CREATED);
-	} 
+        headers.setLocation(ucBuilder.path("/cities/{id}").buildAndExpand(id).toUri());
+		return new ResponseEntity<HttpHeaders>(headers, HttpStatus.CREATED);
+	}
 	
 	@RequestMapping(value="/batch", method = RequestMethod.POST)
 	public ResponseEntity<?> addAll(@RequestBody List<City> list) {
 		cityRepository.saveAll(list);
-		return new ResponseEntity<>("success", HttpStatus.OK);
+		cityRepository.updateFts();
+		return new ResponseEntity<String>("success", HttpStatus.CREATED);
 	} 
 
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)

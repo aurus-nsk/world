@@ -17,7 +17,7 @@
 
 	<div id="wrapper" class="wrapper">
 		<div class="container">
-		    Город:
+		    Добавить город:
 		    <form id="city_add_form" method="POST" modelAttribute="cityForm">
 		    	
 		    	<div class="form-group">
@@ -37,6 +37,27 @@
 		    </form>
 		 </div>
 		 
+		 <div class="container">
+		    Добавить много городов:
+		    <form id="cities_add_form" method="POST" modelAttribute="citiesForm">
+		    	
+		    	<div class="form-group">
+	    			<label for="name">Название</label>
+	    			<input id="name_id" name="name" type="text"  class="form-control inputfield"></input>
+	  			</div>
+		   		<div class="form-group">
+	    			<label for="square">Площадь(км2)</label>
+					<input id="square_id" name="square" type="text" class="form-control inputfield"></input>
+				</div>
+				<div class="form-group">
+	    			<label for="population">Население</label>
+					<input id="population_id" name="population" type="text" class="form-control inputfield"></input>
+				</div>
+				
+				<button type="submit" class="btn btn-primary">Добавить все</button>
+		    </form>
+		 </div>
+		 
 		<div id="table">
 		</div>
 		
@@ -52,13 +73,16 @@
     			submitViaAjax();
     		});
 
-    		function submitViaAjax() {
+    		$("#cities_add_form").submit(function(event) {
+    			event.preventDefault();
+    			batchUpdateViaAjax();
+    		});
 
+    		function submitViaAjax() {
 				var city = {};
     			city["name"] = $("#name_id").val();
     			city["square"] = $("#square_id").val();
     			city["population"] = $("#population_id").val();
-    			
     			$.ajax({
     				type : "POST",
     				contentType : "application/json;charset=UTF-8",
@@ -68,12 +92,15 @@
     			    success: function(data) {
     			    	$('#table').html(data);
     			    },
-    			    error: function(xhr, resp, text) {
-                        console.log(xhr, resp, text);
-                        $('#table').html(resp + text);
+    			    error: function(xhr) {
+                        $('#table').html(xhr);
                     }
     			});
     		}
+
+    		function submitViaAjax() {
+        		 
+        	}
     	});
 	</SCRIPT>
 </body>
