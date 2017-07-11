@@ -2,9 +2,12 @@ package com.world.repository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -81,7 +85,7 @@ public class StreetRepository {
         log.info("update street full text search index");
     }
 	
-	public Street findById(String id) {
+	public Street findById(int id) {
 		Street result =  jdbcTemplate.queryForObject(
                 "SELECT id, name, extent FROM street WHERE id = ?", new Object[] {id},
                 (rs, rowNum) -> new Street(rs.getInt("id"), rs.getString("name"), rs.getInt("extent"))
@@ -90,8 +94,30 @@ public class StreetRepository {
 		return result;
 	}
 	
-	public void deleteById(String id) {
+	public void deleteById(int id) {
 		jdbcTemplate.update("DELETE from street WHERE id = ?", new Object[] {id});
 		log.info("deleteById: " + id);
+	}
+	
+	public Map<Integer, Map<String,Object>> findStreet(int from, int to, String cityName, String query) {
+		final Map<Integer, Map<String,Object>> result = new HashMap<Integer, Map<String,Object>>();
+		
+		String sql = "SELECT street.id, street.name as name, street.extent as extent, org.name as orgName "
+		+ "FROM street left join organization as org ON org.street_id = street.id left join city on org.city_id = city.id "
+		+ "WHERE street.extent >= ? AND street.extent <= ? AND city.name = ? "
+		+ "AND orgfts @@ to_tsquery(?)";
+		
+		jdbcTemplate.query(sql, new RowCallbackHandler() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void processRow(ResultSet rs) throws SQLException {
+				result.putIfAbsent(rs.getInt("id"), new HashMap<String,Object>());
+				result.get(rs.getInt("id")).putIfAbsent("orgs", new ArrayList<String>());
+				result.get(rs.getInt("id")).putIfAbsent("name", rs.getString("name"));
+				result.get(rs.getInt("id")).putIfAbsent("extent", rs.getInt("extent"));	
+				((List<String>)result.get(rs.getInt("id")).get("orgs")).add(rs.getString("orgName"));
+			}
+		}, new Object[]{from, to, cityName, query});
+		return result;
 	}
 }

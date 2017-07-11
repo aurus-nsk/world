@@ -97,7 +97,7 @@ public class OrganizationRepository {
 		list.forEach(item -> this.save(item));
 	}
 	
-	public Organization findById(String id) {
+	public Organization findById(int id) {
 		
 		final Map<Integer, Organization> map = new HashMap<>();
 		
@@ -172,7 +172,7 @@ public class OrganizationRepository {
 						new Street(rs.getInt("streetId"), rs.getString("streetName"), rs.getInt("streetExtent")),
 						rs.getString("home_number"), rs.getString("scope"), rs.getString("website"), rs.getDate("date_update"), rs.getString("key_words") );
 	        	
-	            Phone phone = new Phone(rs.getInt("phone.id"), rs.getString("phone.number"));
+				Phone phone = new Phone(rs.getInt("phoneId"), rs.getString("phoneNumber"));
 
 	            map.putIfAbsent(org.getId(), org);
 	            map.get(org.getId()).addPhone(phone);
@@ -188,7 +188,7 @@ public class OrganizationRepository {
         log.info("update organization full text search index");
     }
 	
-	public void deleteById(String id) {
+	public void deleteById(int id) {
 		jdbcTemplate.update("DELETE from organization WHERE id = ?", new Object[] {id});
 		log.info("deleteById: " + id);
 	}

@@ -83,17 +83,17 @@ public class CityRepository {
         log.info("update city full text search index");
     }
 	
-	public City findById(String id) {
+	public City findById(int id) {
 		City result =  jdbcTemplate.queryForObject(
-                "SELECT id, name, square, population FROM city WHERE id = ?", new Object[] {id},
+                "SELECT id, name, square, population FROM city WHERE id = ?", new Object[]{id},
                 (rs, rowNum) -> new City(rs.getInt("id"), rs.getString("name"), rs.getBigDecimal("square"), rs.getInt("population"))
         );
 		log.info("findById: " + result);
 		return result;
 	}
 	
-	public void deleteById(String id) {
-		jdbcTemplate.update("DELETE from city WHERE id = ?", new Object[] {id});
+	public void deleteById(int id) {
+		jdbcTemplate.update("DELETE from city WHERE id = ?", new Object[]{id});
 		log.info("deleteById: " + id);
 	}
 }

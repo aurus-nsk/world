@@ -100,24 +100,17 @@
     			city["id"] = $("#city_id").val();
     			organization["city"] = city;
 
-    			console.log(organization);
-    			console.log(JSON.stringify(organization));
     			$.ajax({
     				type : "POST",
     				contentType : "application/json;charset=UTF-8",
     				cache: false,
-    				dataType: 'json',
     				url : "/organizations/",
     				data : JSON.stringify(organization),
     			    success: function(data) {
-    			    	$.each(data, function(index, element) {
-    			            $('#table').append($('<div>', {
-    			                text: element.name
-    			            }));
-    			        });
+    			    	$('#table').html(data);
     			    },
     			    error: function(xhr) {
-                        $('#table').html(xhr);
+                        $('#table').html(xhr.responseText);
                     }
     			});
     			

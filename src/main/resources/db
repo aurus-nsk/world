@@ -112,7 +112,10 @@ FROM street left join organization org ON org.street_id = street.id left join ci
 WHERE street.extent >= 1 AND street.extent <= 10000 AND city.name = 'Новосибирск' 
 AND orgfts @@ to_tsquery('String:b');
 
-
+SELECT street.name, street.extent, org.name
+FROM street left join organization org ON org.street_id = street.id left join city on org.city_id = city.id
+WHERE street.extent >= 1 AND street.extent <= 2500; AND city.name = 'Новосибирск' 
+AND orgfts @@ to_tsquery('Ресторан | Банк:b');
 =======================================================
 =======================================================
 http://qualcode.ru/article/postgres_fts_dict_cfg/

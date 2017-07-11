@@ -2,6 +2,7 @@ package com.world.web;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -34,7 +36,7 @@ public class StreetController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.GET)
 	public Street read(@PathVariable String id) {
-		return streetRepository.findById(id);
+		return streetRepository.findById(Integer.parseInt(id));
 	}
 	
 	@RequestMapping(value="/", method = RequestMethod.POST)
@@ -55,7 +57,7 @@ public class StreetController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<?> update(@PathVariable String id, @RequestBody Street input) {
-		Street result = streetRepository.findById(id);
+		Street result = streetRepository.findById(Integer.parseInt(id));
 
 		if (result == null) {
 			return new ResponseEntity<String>("Street with id " + id + " not found.", HttpStatus.NOT_FOUND);
@@ -70,7 +72,15 @@ public class StreetController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> delete(@PathVariable String id) {
-		streetRepository.deleteById(id);
+		streetRepository.deleteById(Integer.parseInt(id));
 		return new ResponseEntity<City>(HttpStatus.NO_CONTENT); 
+	}
+	
+	@RequestMapping(value="/findstreet", method = RequestMethod.GET)
+	public Map<Integer, Map<String,Object>> findStreet(@RequestParam Map<String, String> request) {
+		String query = (String) request.get("scope"); 
+		query = query.replaceAll("\\s+", " | ");
+		query = query + ":b";
+		return streetRepository.findStreet(Integer.parseInt(request.get("from")), Integer.parseInt(request.get("to")), (String) request.get("city"), query);
 	}
 }

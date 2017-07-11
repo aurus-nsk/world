@@ -33,7 +33,7 @@ public class CityController {
 
 	@RequestMapping(value="/{id}", method = RequestMethod.GET)
 	public City read(@PathVariable String id) {
-		return cityRepository.findById(id);
+		return cityRepository.findById(Integer.parseInt(id));
 	}
 
 	@RequestMapping(value="/", method = RequestMethod.POST)
@@ -54,7 +54,7 @@ public class CityController {
 
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<?> update(@PathVariable String id, @RequestBody City input) {
-		City result = cityRepository.findById(id);
+		City result = cityRepository.findById(Integer.parseInt(id));
 
 		if (result == null) {
 			return new ResponseEntity<String>("City with id " + id + " not found.", HttpStatus.NOT_FOUND);
@@ -68,9 +68,9 @@ public class CityController {
 		return new ResponseEntity<City>(result, HttpStatus.OK); 
 	}
 	
-	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value="/delete/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> delete(@PathVariable String id) {
-		cityRepository.deleteById(id);
+		cityRepository.deleteById(Integer.parseInt(id));
 		return new ResponseEntity<City>(HttpStatus.NO_CONTENT); 
 	}
 }

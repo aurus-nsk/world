@@ -60,7 +60,7 @@
     			    	$('#table').html(data);
     			    },
     			    error: function(xhr) {
-                        $('#table').html(xhr);
+                        $('#table').html(xhr.responseText);
                     }
     			});
     		}

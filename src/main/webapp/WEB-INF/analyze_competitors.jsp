@@ -21,24 +21,30 @@
 			<form id="analyze_form" method="GET" modelAttribute="analyzeForm">
 			    	<div class="form-group">
 		    			<label for="scope">Сфера деятельности организации</label>
-		    			<input id="scope_id" name="scope" type="text"  class="form-control inputfield"></input>
+		    			<input id="scope_id" name="scope" type="text" value="Ресторан" class="form-control inputfield"></input>
 		  			</div>
 		  			<button type="submit" class="btn btn-primary">Найти конкурентов</button>
-		  	</form>	    
-	  	</div>
-	  	
-	  	<table id="table" class="table">
+		  	</form>	 
+		  	<table id="table" class="table">
 		  <thead>
 		    <tr>
 		      <th>город</th>
 		      <th>сфера деятельности</th>
 		      <th>количество организаций</th>
 		      <th>население города</th>
+		      <th>кол-во организаций/население</th>
 		    </tr>
 		  </thead>
 		  <tbody>
 		  </tbody>
 		</table>
+		   
+	  	</div>
+	  	
+	  	
+		
+		<div id="message">
+		</div>
 	</div>
 	<jsp:include page="/WEB-INF/footer.jsp"/>
 	<SCRIPT type="text/javascript">
@@ -65,12 +71,12 @@
     			                      +"<td>"+data.scope+"</td>"
     			                      +"<td>"+data.quantity+"</td>"
     			                      +"<td>"+data.cityPopulation+"</td>"
+    			                      +"<td>"+Number(data.quantity)/Number(data.cityPopulation)+"</td>"
     			                    +"</tr>" );
     			    	})
     			    },
     			    error: function(xhr) {
-                        console.log(xhr);
-                        $('#table').html(xhr);
+    			    	$('#message').html(xhr.responseText);
                     }
     			});
     		}

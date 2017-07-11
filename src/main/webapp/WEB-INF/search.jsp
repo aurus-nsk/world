@@ -21,13 +21,12 @@
 			<form id="search_inno_form" method="GET" modelAttribute="searchInnoForm">
 			    	<div class="form-group">
 		    			<label for="request">Поисковый запрос</label>
-		    			<input id="request_id" name="request" type="text"  class="form-control inputfield"></input>
+		    			<input id="request_id" name="request" value="поесть на ленина" type="text"  class="form-control inputfield"></input>
 		  			</div>
 		  			<button type="submit" class="btn btn-primary">Найти</button>
-		  	</form>	    
-	  	</div>
-	  	
-	  	<table id="table" class="table">
+		  	</form>	
+		  	
+		  	<table id="table" class="table">
 		  <thead>
 		    <tr>
 		      <th>#</th>
@@ -40,7 +39,11 @@
 		  </thead>
 		  <tbody>
 		  </tbody>
-		</table>
+		</table>    
+	  	</div>
+		
+		<div id="message">
+		</div>
 	</div>
 	<jsp:include page="/WEB-INF/footer.jsp"/>
 	<SCRIPT type="text/javascript">
@@ -73,8 +76,7 @@
     			    	})
     			    },
     			    error: function(xhr) {
-                        console.log(xhr);
-                        $('#table').html(xhr);
+                        $('#message').html(xhr.responseText);
                     }
     			});
     		}

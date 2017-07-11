@@ -38,7 +38,7 @@ public class OrganizationController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.GET)
 	public Organization read(@PathVariable String id) {
-		return organizationRepository.findById(id);
+		return organizationRepository.findById(Integer.parseInt(id));
 	}
 	
 	@RequestMapping(value="/name", method = RequestMethod.GET)
@@ -47,7 +47,7 @@ public class OrganizationController {
 	}
 	
 	@RequestMapping(value="/from", method = RequestMethod.GET)
-	public Collection<Organization> findFromDateUpdate(@RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd'T'hh:mm:ss.SSSZ") Date fromDate) {
+	public Collection<Organization> findFromDateUpdate(@RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd'T'hh:mm:ss.SSS") Date fromDate) {
 		return organizationRepository.findFromDateUpdate(fromDate);
 	}
 	
@@ -69,7 +69,7 @@ public class OrganizationController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<?> update(@PathVariable String id, @RequestBody Organization input) {
-		Organization result = organizationRepository.findById(id);
+		Organization result = organizationRepository.findById(Integer.parseInt(id));
 
 		if (result == null) {
 			return new ResponseEntity<String>("Organization with id " + id + " not found.", HttpStatus.NOT_FOUND);
@@ -89,14 +89,13 @@ public class OrganizationController {
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> delete(@PathVariable String id) {
-		organizationRepository.deleteById(id);
+		organizationRepository.deleteById(Integer.parseInt(id));
 		return new ResponseEntity<City>(HttpStatus.NO_CONTENT); 
 	}
 	
 	@RequestMapping(value="/search", method = RequestMethod.POST)
 	public Collection<Organization> search(@RequestBody String text) {
 		String query = text.replaceAll("\\s+", " | ");
-		System.out.println(query);
 		return organizationRepository.search(query);
 	}
 	
