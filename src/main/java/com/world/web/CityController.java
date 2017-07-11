@@ -49,8 +49,8 @@ public class CityController {
 	public ResponseEntity<?> addAll(@RequestBody List<City> list) {
 		cityRepository.saveAll(list);
 		cityRepository.updateFts();
-		return new ResponseEntity<String>("success", HttpStatus.CREATED);
-	} 
+		return new ResponseEntity<String>("city batchUpdate - success", HttpStatus.CREATED);
+	}
 
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
 	public ResponseEntity<?> update(@PathVariable String id, @RequestBody City input) {

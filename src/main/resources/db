@@ -25,8 +25,14 @@ drop table phones;
 drop table organization;
 drop table city;
 drop table street;
-
 create table city (id serial PRIMARY KEY, name varchar(255) UNIQUE, square numeric NOT NULL, population int NOT NULL );
+create table street (id serial PRIMARY KEY, name varchar(255) UNIQUE, extent int NOT NULL);
+create table organization (id serial PRIMARY KEY, name varchar(255) UNIQUE, city_id int REFERENCES City(id), street_id int REFERENCES Street(id), home_number varchar(255),scope varchar(255) NOT NULL, website varchar(255), date_update timestamp NOT NULL, key_words varchar(100000));
+create table phones (id serial PRIMARY KEY, number varchar(255) UNIQUE, organization_id int REFERENCES organization(id));
+ALTER TABLE organization ADD COLUMN orgfts tsvector;
+ALTER TABLE city ADD COLUMN cityfts tsvector;
+ALTER TABLE street ADD COLUMN streetfts tsvector;
+
 
 INSERT INTO city(name, square, population) VALUES('Москва', 2561.5, 12380664);
 INSERT INTO city(name, square, population) VALUES('Новосибирск',505.62, 1602915);
@@ -62,6 +68,9 @@ INSERT INTO phones(number, organization_id) VALUES ('+79235554455', 1);
 INSERT INTO phones(number, organization_id) VALUES ('3807711', 2);
 INSERT INTO phones(number, organization_id) VALUES ('2501010', 3);
 
+ALTER TABLE organization ADD COLUMN orgfts tsvector;
+ALTER TABLE city ADD COLUMN cityfts tsvector;
+ALTER TABLE street ADD COLUMN streetfts tsvector;
 **** Search
 ALTER TABLE organization ADD COLUMN orgfts tsvector;
 UPDATE organization SET orgfts=
@@ -136,3 +145,32 @@ https://stackoverflow.com/questions/15053400/full-text-search-with-related-table
 
 //повторы из-за телефонов
 SELECT org.name, ts_rank_cd(( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')), query) AS rank FROM organization org left join phones phone on org.id = phone.organization_id left join city on org.city_id = city.id left join street on org.street_id = street.id, to_tsquery('Новосибирск') query WHERE ( coalesce(org.orgfts, '') ||' '|| coalesce(city.cityfts, '') ||' '|| coalesce(street.streetfts, '')) @@ query ORDER BY rank DESC;
+
+
+
+/*
+		String sql = "INSERT INTO organization(name, city_id, street_id, home_number, scope, website, date_update, key_words) VALUES (?,?,?,?,?,?,now(),?)";
+		jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				Organization item = list.get(i);
+				ps.setString(1, item.getName());
+				ps.setInt(2, item.getCity().getId());
+				ps.setInt(3, item.getStreet().getId());
+				ps.setString(4, item.getHomeNumber());
+				ps.setString(5, item.getScope());
+				ps.setString(6, item.getWebsite());
+				ps.setString(7, item.getKeyWords());
+			}
+
+			@Override
+			public int getBatchSize() {
+				return list.size();
+			}
+		});
+		log.info("insert: " + Arrays.toString(list.toArray()));
+		
+		list.forEach(item -> phoneRepository.saveAll(item.getPhone(), item.getId()));
+		
+		*/

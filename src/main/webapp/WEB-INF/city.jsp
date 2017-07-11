@@ -37,27 +37,6 @@
 		    </form>
 		 </div>
 		 
-		 <div class="container">
-		    Добавить много городов:
-		    <form id="cities_add_form" method="POST" modelAttribute="citiesForm">
-		    	
-		    	<div class="form-group">
-	    			<label for="name">Название</label>
-	    			<input id="name_id" name="name" type="text"  class="form-control inputfield"></input>
-	  			</div>
-		   		<div class="form-group">
-	    			<label for="square">Площадь(км2)</label>
-					<input id="square_id" name="square" type="text" class="form-control inputfield"></input>
-				</div>
-				<div class="form-group">
-	    			<label for="population">Население</label>
-					<input id="population_id" name="population" type="text" class="form-control inputfield"></input>
-				</div>
-				
-				<button type="submit" class="btn btn-primary">Добавить все</button>
-		    </form>
-		 </div>
-		 
 		<div id="table">
 		</div>
 		
@@ -71,11 +50,6 @@
     		$("#city_add_form").submit(function(event) {
     			event.preventDefault();
     			submitViaAjax();
-    		});
-
-    		$("#cities_add_form").submit(function(event) {
-    			event.preventDefault();
-    			batchUpdateViaAjax();
     		});
 
     		function submitViaAjax() {
@@ -97,10 +71,6 @@
                     }
     			});
     		}
-
-    		function submitViaAjax() {
-        		 
-        	}
     	});
 	</SCRIPT>
 </body>

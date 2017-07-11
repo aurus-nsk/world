@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.world.domain.Phone;
 
@@ -22,7 +21,6 @@ public class PhoneRepository {
     JdbcTemplate jdbcTemplate;
 	private static final Logger log = LoggerFactory.getLogger(PhoneRepository.class);
 	
-	@Transactional(readOnly=true)
     public List<Phone> findAll() {
         List<Phone> result = jdbcTemplate.query(
                 "SELECT id, number FROM phone",
@@ -32,13 +30,11 @@ public class PhoneRepository {
         return result;
     }
 	
-	@Transactional
     public void save(Phone input, final int id) {
         jdbcTemplate.update("INSERT INTO phone(number, organization_id) VALUES (?,?)", new Object[] {input.getNumber(), id});
         log.info("insert: " + input.toString());
     }
 	
-	@Transactional
     public void saveAll(List<Phone> list, final int id) {
 		if(list == null || list.isEmpty()) return;
 		
@@ -61,7 +57,6 @@ public class PhoneRepository {
 		log.info("insert: " + Arrays.toString(list.toArray()));
     }
 	
-	@Transactional
 	public void deleteById(String id) {
 		jdbcTemplate.update("DELETE from phone WHERE id = ?", new Object[] {id});
 		log.info("deleteById: " + id);

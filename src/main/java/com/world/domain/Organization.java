@@ -15,8 +15,9 @@ public class Organization {
 	private List<Phone> phone = new ArrayList<Phone>();
 	private String website;
 	private Date dateUpdate;
+	private String keyWords;
 	
-	public Organization(int id, String name, City city, Street street, String homeNumber, String scope,  String website, Date dateUpdate) {
+	public Organization(int id, String name, City city, Street street, String homeNumber, String scope,  String website, Date dateUpdate, String keyWords) {
 		this.id = id;
 		this.name = name;
 		this.city = city;
@@ -25,6 +26,7 @@ public class Organization {
 		this.scope = scope;
 		this.website = website;
 		this.dateUpdate = dateUpdate;
+		this.keyWords = keyWords;
 	}
 	
 	public Organization() {
@@ -106,11 +108,19 @@ public class Organization {
 		this.phone.add(phone);
 	}
 
+	public String getKeyWords() {
+		return keyWords;
+	}
+
+	public void setKeyWords(String keyWords) {
+		this.keyWords = keyWords;
+	}
+
 	@Override
 	public String toString() {
 		return "Organization [id=" + id + ", name=" + name + ", city=" + city + ", street=" + street + ", homeNumber="
 				+ homeNumber + ", scope=" + scope + ", phone=" + phone + ", website=" + website + ", dateUpdate="
-				+ dateUpdate + "]";
+				+ dateUpdate + ", keyWords=" + keyWords + "]";
 	}
 
 	@Override
@@ -121,6 +131,7 @@ public class Organization {
 		result = prime * result + ((dateUpdate == null) ? 0 : dateUpdate.hashCode());
 		result = prime * result + ((homeNumber == null) ? 0 : homeNumber.hashCode());
 		result = prime * result + id;
+		result = prime * result + ((keyWords == null) ? 0 : keyWords.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((phone == null) ? 0 : phone.hashCode());
 		result = prime * result + ((scope == null) ? 0 : scope.hashCode());
@@ -155,6 +166,11 @@ public class Organization {
 			return false;
 		if (id != other.id)
 			return false;
+		if (keyWords == null) {
+			if (other.keyWords != null)
+				return false;
+		} else if (!keyWords.equals(other.keyWords))
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -182,5 +198,4 @@ public class Organization {
 			return false;
 		return true;
 	}
-	
 }

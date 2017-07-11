@@ -17,7 +17,6 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.world.domain.City;
 
@@ -28,7 +27,6 @@ public class CityRepository {
     JdbcTemplate jdbcTemplate;
 	private static final Logger log = LoggerFactory.getLogger(CityRepository.class);
 
-	@Transactional(readOnly=true)
     public List<City> findAll() {
         List<City> result = jdbcTemplate.query(
                 "SELECT id, name, square, population FROM city",
@@ -38,7 +36,6 @@ public class CityRepository {
         return result;
     }
 	
-	@Transactional
     public int save(City input) {
         String sql = "INSERT INTO city(name, square, population) VALUES (?,?,?)"; 
 		KeyHolder holder = new GeneratedKeyHolder();
@@ -60,7 +57,6 @@ public class CityRepository {
         return id;
     }
 	
-	@Transactional
 	public void saveAll(List<City> list) {
 		String sql = "INSERT INTO city(name, square, population) VALUES (?,?,?)";
 		jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -82,13 +78,11 @@ public class CityRepository {
 		log.info("insert: " + Arrays.toString(list.toArray()));
 	}
 	
-	@Transactional
     public void updateFts() {
 		jdbcTemplate.update("UPDATE city SET cityfts=setweight( coalesce( to_tsvector('ru', name),''),'C');");
         log.info("update city full text search index");
     }
 	
-	@Transactional(readOnly=true)
 	public City findById(String id) {
 		City result =  jdbcTemplate.queryForObject(
                 "SELECT id, name, square, population FROM city WHERE id = ?", new Object[] {id},
@@ -98,7 +92,6 @@ public class CityRepository {
 		return result;
 	}
 	
-	@Transactional
 	public void deleteById(String id) {
 		jdbcTemplate.update("DELETE from city WHERE id = ?", new Object[] {id});
 		log.info("deleteById: " + id);

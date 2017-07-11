@@ -3,6 +3,7 @@ package com.world.web;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -53,6 +54,7 @@ public class OrganizationController {
 	@RequestMapping(value="/", method = RequestMethod.POST)
 	public ResponseEntity<?> create(@RequestBody Organization input, UriComponentsBuilder ucBuilder) {
 		int id = organizationRepository.save(input);
+		organizationRepository.updateFts();
 		HttpHeaders headers = new HttpHeaders(); 
 		headers.setLocation(ucBuilder.path("/organizations/{id}").buildAndExpand(id).toUri());
 		return new ResponseEntity<HttpHeaders>(headers, HttpStatus.CREATED);
@@ -61,7 +63,8 @@ public class OrganizationController {
 	@RequestMapping(value="/batch", method = RequestMethod.POST)
 	public ResponseEntity<?> addAll(@RequestBody List<Organization> list) {
 		organizationRepository.saveAll(list);
-		return new ResponseEntity<>("success", HttpStatus.OK);
+		organizationRepository.updateFts();
+		return new ResponseEntity<>("oranization batchUpdate - success", HttpStatus.CREATED);
 	}
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
@@ -92,9 +95,13 @@ public class OrganizationController {
 	
 	@RequestMapping(value="/search", method = RequestMethod.POST)
 	public Collection<Organization> search(@RequestBody String text) {
-		System.out.println(text);
-		String query = text.replace("\\W+", " | ");
-		System.out.println("search query: " + query);
+		String query = text.replaceAll("\\s+", " | ");
+		System.out.println(query);
 		return organizationRepository.search(query);
+	}
+	
+	@RequestMapping(value="/analyze", method = RequestMethod.POST)
+	public List<Map<String,Object>> analyze(@RequestBody String param) {
+		return organizationRepository.analyze(param);
 	}
 }

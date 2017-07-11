@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.world.domain.City;
 import com.world.domain.Street;
@@ -36,15 +38,19 @@ public class StreetController {
 	}
 	
 	@RequestMapping(value="/", method = RequestMethod.POST)
-	public ResponseEntity<?> create(@RequestBody Street input) {
-		streetRepository.save(input);
-		return new ResponseEntity<>("success", HttpStatus.OK);
-	} 
+	public ResponseEntity<?> create(@RequestBody Street input, UriComponentsBuilder ucBuilder) {
+		int id = streetRepository.save(input);
+		streetRepository.updateFts();
+		HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(ucBuilder.path("/streets/{id}").buildAndExpand(id).toUri());
+		return new ResponseEntity<HttpHeaders>(headers, HttpStatus.CREATED);
+	}
 	
 	@RequestMapping(value="/batch", method = RequestMethod.POST)
 	public ResponseEntity<?> addAll(@RequestBody List<Street> list) {
 		streetRepository.saveAll(list);
-		return new ResponseEntity<>("success", HttpStatus.OK);
+		streetRepository.updateFts();
+		return new ResponseEntity<>("street batchUpdate - success", HttpStatus.OK);
 	} 
 	
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
